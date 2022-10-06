@@ -5,6 +5,7 @@ const InventarioSchema = Schema({
         type: String,
         required: true,
         unique: true,
+        
     },
     modelo: {
         type: String,
