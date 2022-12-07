@@ -3,6 +3,7 @@ const { getConnection } = require('./bd/bd-connection-mongo');
 const cors = require('cors');
 require('dotenv').config();
 
+
 const app = express();
 const port = process.env.PORT;
 
