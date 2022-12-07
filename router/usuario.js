@@ -1,10 +1,16 @@
 const { Router } = require('express'); 
+const { validationResult, check} = require('express-validator');
 const router = Router();
 const Usuario = require('../models/Usuario');
 const { validarUsuario } = require('../helpers/validar-usuario');
 
 
-router.post('/', async function (req, res) {
+router.post('/', [
+    check('nombre', 'invalid.nombre').not().isEmpty(),
+    check('email','invalid.email').isEmail(),
+    check('rol', 'invalid.rol' ).isIn(['Adim', 'Docente']),
+    check('contrasena', 'invalid.contrasena').not().isEmpty(),
+], async function (req, res) {
     
     try {
         const validaciones = validarUsuario(req);
@@ -15,16 +21,22 @@ router.post('/', async function (req, res) {
 
 
         console.log(req.body);
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({mensaje: errors.array});
+        }
 
-        const existeUsuario = await Usuario.findOne({ email: req.body.email });
-        console.log(existeUsuario);
-        if (existeUsuario) {
-            return res.status(400).send('email ya existe');
+        const existeEmail = await Usuario.findOne({ email: req.body.email });
+        console.log(existeEmail);
+        if (existeEmail) {
+            return res.status(400).send('email ya existe'); //.json({mensaje})
         }
 
         let usuario = new Usuario();
         usuario.nombre = req.body.nombre;
         usuario.email = req.body.email;
+        usuario.contrasena = req.body.contrasena;
+        usuario.rol = req.body.rol;
         usuario.estado = req.body.estado;
         usuario.fechaCreacion = new Date();
         usuario.fechaActualizacion = new Date();
@@ -34,7 +46,7 @@ router.post('/', async function (req, res) {
         res.send(usuario);
     } catch (error) {
         console.log(error);
-        res.status(500).send('Ocurrio un error');
+        res.status(500).send('Ocurrio un error');  //.json({mensaje})
     }
 });
 router.get('/', async function (req, res) {

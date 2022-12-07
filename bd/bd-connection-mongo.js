@@ -10,6 +10,7 @@ const getConnection = async () => {
         
     } catch (error) {
         console.log(error); 
+        throw new Error('Error de conexión a la BD');
     }
 
 }
