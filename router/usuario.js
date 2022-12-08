@@ -26,7 +26,7 @@ router.post('/', [
         console.log(req.body);
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ mensaje: errors.array });
+            return res.status(400).json({ mensaje: errors.array() });
         }
 
         const existeEmail = await Usuario.findOne({ email: req.body.email });
@@ -38,7 +38,11 @@ router.post('/', [
         let usuario = new Usuario();
         usuario.nombre = req.body.nombre;
         usuario.email = req.body.email;
-        usuario.contrasena = req.body.contrasena;
+
+        const salt = bycript.genSaltSync();
+        const contrasena = bycript.hashSync(req.body.contrasena,salt);
+        usuario.contrasena = contrasena;
+
         usuario.rol = req.body.rol;
         usuario.estado = req.body.estado;
         usuario.fechaCreacion = new Date();
@@ -54,7 +58,7 @@ router.post('/', [
 });
 router.get('/', async function (req, res) {
     try {
-        const usuarios = await Usuario.find(); //find= select * from
+        const usuarios = await Usuario.find(); //find= select * from usuario
         res.send(usuarios);
     } catch (error) {
         console.log(error);
