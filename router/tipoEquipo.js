@@ -1,10 +1,12 @@
 const { Router } = require('express');
 const TipoEquipo = require('../models/TipoEquipo');
 const { validarTipoEquipo } = require('../helpers/validar-tipoEquipo');
+const {validarJWT} = require('../middleware/validarJWT');
+const {validarRolAdministrador} = require ('../middleware/validar-rol-administrador');
 
 const router = Router();
 
-router.get('/', async function (req, res) {
+router.get('/', [validarJWT, validarRolAdministrador], async function (req, res) {
     try {
         const tipos = await TipoEquipo.find();
         res.send(tipos);
@@ -13,7 +15,7 @@ router.get('/', async function (req, res) {
         res.status(500).send('Ocurrio un error');
     }
 });
-router.post('/', async function (req, res) {
+router.post('/', [validarJWT, validarRolAdministrador], async function (req, res) {
     try {
         const validaciones = validarTipoEquipo(req);
 
@@ -33,7 +35,7 @@ router.post('/', async function (req, res) {
         res.status(500).send('Ocurrio un error');
     }
 });
-router.put('/:tipoEquipoId', async function (req, res) {
+router.put('/:tipoEquipoId', [validarJWT, validarRolAdministrador], async function (req, res) {
     try {
         let tipoEquipo = await TipoEquipo.findById(req.params.tipoEquipoId);
         if (!tipoEquipo) {

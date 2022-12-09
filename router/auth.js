@@ -3,6 +3,7 @@ const { Router } = require('express');
 const { validationResult, check } = require('express-validator');
 const Usuario = require('../models/Usuario');
 const bycript = require('bcryptjs');
+const {generarJWT} = require ('../helpers/jwt');
 
 const router = Router();
 
@@ -17,17 +18,19 @@ router.post('/', [
         }
 
         const usuario = await Usuario.findOne({email: req.body.email});
-        if(!usuario) {
+        if(!usuario) { //validamos si existe usuario por email
             return res.status(400).json({mensaje: 'User no found'})
         }
+        //validación contraseña
         const esIgual = bycript.compareSync(req.body.contrasena, usuario.contrasena);
         if(!esIgual){
             return res.status(400).json({mensaje: 'User no found'});
         }
-
-
+        //generar token
+        const token = generarJWT (usuario);
         res.json({_id: usuario._id, nombre: usuario.nombre, 
-            rol:usuario.rol, email: usuario.email})
+            rol:usuario.rol, email: usuario.email, 
+            estado: usuario.estado, acces_token: token});
 
     } catch(error){
         console.log(error);

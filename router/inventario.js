@@ -1,10 +1,12 @@
 const { Router } = require('express');
 const Inventario = require('../models/Inventario');
 const {validarInventario } = require('../helpers/validar-inventario');
+const {validarJWT} = require('../middleware/validarJWT');
+const {validarRolAdministrador} = require ('../middleware/validar-rol-administrador');
 
 const router = Router();
 
-router.get('/', async function (req, res) {
+router.get('/', [validarJWT], async function (req, res) {
     try {
         const inventarios = await Inventario.find().populate([
             {
@@ -26,7 +28,7 @@ router.get('/', async function (req, res) {
         res.status(500).send('Ocurrio un error al consultar inventarios');
     }
 });
-router.post('/', async function (req, res) {
+router.post('/', [validarJWT, validarRolAdministrador], async function (req, res) {
     try {
         const validaciones = validarInventario(req);
 
@@ -61,7 +63,7 @@ router.post('/', async function (req, res) {
     }
 
 });
-router.put('/:inventarioId', async function (req, res) {
+router.put('/:inventarioId', [validarJWT, validarRolAdministrador], async function (req, res) {
     try {
         let inventario = await Inventario.findById(req.params.inventarioId);
         if (!inventario) {

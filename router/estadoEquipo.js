@@ -1,10 +1,12 @@
 const { Router } = require('express');
 const EstadoEquipo = require('../models/EstadoEquipo');
 const { validarEstadoEquipo } = require('../helpers/validar-estadoEquipo');
+const {validarJWT} = require('../middleware/validarJWT');
+const {validarRolAdministrador} = require ('../middleware/validar-rol-administrador');
 
 const router = Router();
 
-router.get('/', async function (req, res) {
+router.get('/', [validarJWT, validarRolAdministrador], async function (req, res) {
     try {
         const estadoEquipo = await EstadoEquipo.find();
         res.send(estadoEquipo);
@@ -13,7 +15,7 @@ router.get('/', async function (req, res) {
         res.status(500).send('Ocurrio un error');
     }
 });
-router.post('/', async function (req, res) {
+router.post('/', [validarJWT, validarRolAdministrador], async function (req, res) {
     try {
         const validaciones = validarEstadoEquipo(req);
 
@@ -34,7 +36,7 @@ router.post('/', async function (req, res) {
         res.status(500).send('Ocurrio un error');
     }
 });
-router.put('/:estadoEquipoId', async function (req, res) {
+router.put('/:estadoEquipoId', [validarJWT, validarRolAdministrador], async function (req, res) {
     try{
         let estadoEquipo = await EstadoEquipo.findById(req.params.estadoEquipoId);
         if (!estadoEquipo) {

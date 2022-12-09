@@ -4,31 +4,35 @@ const { validationResult, check } = require('express-validator');
 const Usuario = require('../models/Usuario');
 const { validarUsuario } = require('../helpers/validar-usuario');
 const bycript = require('bcryptjs');
+const {validarJWT} = require('../middleware/validarJWT');
+const {validarRolAdministrador} = require ('../middleware/validar-rol-administrador');
 
 const router = Router();
 
+//crear nuevo usuario
 router.post('/', [
     check('nombre', 'invalid.nombre').not().isEmpty(),
     check('email', 'invalid.email').isEmail(),
     check('rol', 'invalid.rol').isIn(['Administrador', 'Docente']),
     check('contrasena', 'invalid.contrasena').not().isEmpty(),
     check('estado', 'invalid.estado').isIn(['Activo', 'Inactivo']),
-
+    validarJWT,
+    validarRolAdministrador
     ], async function (req, res) {
 
     try {
         const validaciones = validarUsuario(req);
 
         if (validaciones.length > 0) {
-            return res.status(400).send(validaciones);
+            return res.status(400).json({validaciones});
         }
 
         console.log(req.body);
-        const errors = validationResult(req);
+        const errors = validationResult(req); //validación campos requeridos
         if (!errors.isEmpty()) {
             return res.status(400).json({ mensaje: errors.array() });
         }
-
+        //validación email
         const existeEmail = await Usuario.findOne({ email: req.body.email });
         console.log(existeEmail);
         if (existeEmail) {
@@ -40,7 +44,7 @@ router.post('/', [
         usuario.email = req.body.email;
 
         const salt = bycript.genSaltSync();
-        const contrasena = bycript.hashSync(req.body.contrasena,salt);
+        const contrasena = bycript.hashSync(req.body.contrasena,salt); //encriptar contraseña
         usuario.contrasena = contrasena;
 
         usuario.rol = req.body.rol;
@@ -56,7 +60,7 @@ router.post('/', [
         res.status(500).json({ mensaje: 'Internal server error' });
     }
 });
-router.get('/', async function (req, res) {
+router.get('/', [validarJWT, validarRolAdministrador],  async function (req, res) {
     try {
         const usuarios = await Usuario.find(); //find= select * from usuario
         res.send(usuarios);
@@ -65,7 +69,7 @@ router.get('/', async function (req, res) {
         res.status(500).json({mensaje: 'Internal server error'});
     }
 });
-router.put('/:usuarioId', async function (req, res) {
+router.put('/:usuarioId', [validarJWT, validarRolAdministrador], async function (req, res) {
     try {
         console.log(req.body, req.params);
 

@@ -1,10 +1,12 @@
 const { Router } = require('express');
 const Marca = require('../models/Marca');
 const {validarMarca} = require('../helpers/validar-marca');
+const {validarJWT} = require('../middleware/validarJWT');
+const {validarRolAdministrador} = require ('../middleware/validar-rol-administrador');
 
 const router = Router();
 
-router.get('/', async function (req, res) {
+router.get('/', [validarJWT, validarRolAdministrador], async function (req, res) {
     try {
         const marcas = await Marca.find();
         res.send(marcas);
@@ -13,7 +15,7 @@ router.get('/', async function (req, res) {
         res.status(500).send('Ocurrio un error');
     }
 });
-router.post('/', async function (req, res) {
+router.post('/', [validarJWT, validarRolAdministrador], async function (req, res) {
     try {
         const validaciones = validarMarca(req);
 
@@ -36,7 +38,7 @@ router.post('/', async function (req, res) {
 });
 
 
-router.put('/:marcaId', async function (req, res) {
+router.put('/:marcaId', [validarJWT, validarRolAdministrador], async function (req, res) {
     try {
         let marca = await Marca.findById(req.params.marcaId);
         if (!marca) {
