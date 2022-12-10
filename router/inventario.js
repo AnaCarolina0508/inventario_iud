@@ -97,7 +97,7 @@ router.put('/:inventarioId', [validarJWT, validarRolAdministrador], async functi
     }
 });
 
-router.get('/:inventarioId', async function(req, res) {
+router.get('/:inventarioId', [validarJWT, validarRolAdministrador], async function(req, res) {
     try{
         const inventario = await Inventario.findById(req.params.inventarioId);
         if (!inventario){
